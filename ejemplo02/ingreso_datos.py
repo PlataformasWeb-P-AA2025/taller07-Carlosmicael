@@ -16,48 +16,51 @@ engine = create_engine(cadena_base_datos)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# se crea un objetos de tipo Club 
-club1 = Club(nombre="Barcelona", deporte="Fútbol", \
-        fundacion=1920)
 
-club2 = Club(nombre="Emelec", deporte="Fútbol", \
-        fundacion=1930)
+# Leemos los archivos
+with open('data/datos_clubs.txt', 'r', encoding='utf-8') as f:
+    lineas_clubs = f.readlines()
 
-club3 = Club(nombre="Liga de Quito", deporte="Fútbol", \
-        fundacion=1940)
+with open('data/datos_jugadores.txt', 'r', encoding='utf-8') as f:
+    lineas_jugadores = f.readlines()
 
-# Se crean objeto de tipo Jugador
-#
-jugador1 = Jugador(nombre ="Damian Diaz", dorsal=10, posicion="mediocampo", \
-        club=club1)
-jugador2 = Jugador(nombre ="Matias Oyola", dorsal=18, posicion="mediocampo", \
-        club=club1)
-jugador3 = Jugador(nombre ="Dario Aymar", dorsal=2, posicion="defensa", \
-        club=club1)
+# Creamos los objetos Club
+clubs_dict = {}  
 
-
-jugador4 = Jugador(nombre ="Oscar Bagui", dorsal=6, posicion="defensa", \
-        club=club2)
-jugador5 = Jugador(nombre ="Romario Caicedo", dorsal=11, posicion="mediocampo", \
-        club=club2)
+for linea in lineas_clubs:
+    partes = linea.strip().split(';')
+    #tomamos el valor de cada columna
+    nombre, deporte, fundacion = partes
+    #creamos el club
+    club = Club(nombre=nombre, deporte=deporte, fundacion=int(fundacion))
+    #lo añadimos a la seecion
+    session.add(club)
+    #guardamos en el diccionario para busqueda posterior
+    clubs_dict[nombre.strip()] = club  
 
 
-jugador6 = Jugador(nombre ="Adrián Gabbarini", dorsal=1, posicion="arquero", \
-        club=club3)
-jugador7 = Jugador(nombre ="Cristian Martinez", dorsal=9, posicion="delantero", \
-        club=club3)
 
-# se agrega los objetos
-# a la sesión
-session.add(club1)
-session.add(club2)
-session.add(club3)
-session.add(jugador1)
-session.add(jugador2)
-session.add(jugador3)
-session.add(jugador4)
-session.add(jugador5)
-session.add(jugador6)
+for linea in lineas_jugadores:
+    partes = linea.strip().split(';')
+    #tomamos cada valor por cada columna de jugador
+    nombre_club, posicion, dorsal, nombre_jugador = partes
+    #tomamos el nombre del club mas importante
+    nombre_club = nombre_club.strip()
+    # Buscar el club correspondiente accediendo al key del diccionario de clubs
+    club = clubs_dict.get(nombre_club)
+    #creamos el objeto jugador
+    jugador = Jugador(nombre=nombre_jugador.strip(),posicion=posicion.strip(),dorsal=int(dorsal),club=club)
+    #lo añadimos a la seecion
+    session.add(jugador)
 
-# se confirma las transacciones
+# Guardamos los jugadores en la base
 session.commit()
+
+# Mostrar resultados
+print("=== CLUBES ===")
+for club in session.query(Club).all():
+    print(f"{club.nombre} - {club.deporte} - {club.fundacion}")
+
+print("\n=== JUGADORES ===")
+for jugador in session.query(Jugador).all():
+    print(f"{jugador.nombre} - {jugador.posicion} - {jugador.dorsal} - Club: {jugador.club.nombre}")
