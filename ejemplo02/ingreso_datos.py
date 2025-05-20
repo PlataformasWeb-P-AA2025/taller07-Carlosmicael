@@ -57,10 +57,10 @@ for linea in lineas_jugadores:
 session.commit()
 
 # Mostrar resultados
-print("=== CLUBES ===")
+print("CLUBES")
 for club in session.query(Club).all():
     print(f"{club.nombre} - {club.deporte} - {club.fundacion}")
 
-print("\n=== JUGADORES ===")
+print("\nJUGADORES")
 for jugador in session.query(Jugador).all():
     print(f"{jugador.nombre} - {jugador.posicion} - {jugador.dorsal} - Club: {jugador.club.nombre}")
